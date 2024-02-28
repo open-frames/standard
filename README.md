@@ -1,4 +1,4 @@
-# Open Frames Spec [Draft v0.0.1]
+# Open Frames Spec [Draft v0.0.2]
 
 Since the launch of [Farcaster Frames](https://docs.farcaster.xyz/reference/frames/spec), we’ve seen a number of protocols work to add Frames support independently. The original Frames spec was designed for Farcaster and wasn’t set up to handle interactions from different types of applications with unique capabilities. Open Frames is a lightweight extension to the Frames spec to help coordinate the many new applications and protocols adopting Frames.
 
@@ -43,6 +43,7 @@ To turn your web pages into Frames, you need to add basic metadata to your page.
 | `of:input:text` | If this property is present, a text field should be added to the Frame. The contents of this field will be shown to the user as a label on the text field. Maximum 32 bytes. |
 | `of:image:aspect_ratio` | The aspect ratio of the image specified in the `of:image` field. Allowed values are `1.91:1` and `1:1`. Default: `1.91:1` |
 | `of:image:alt` | Alt text associated with the image for accessibility |
+| `of:state` | A state serialized to a string (for example via JSON.stringify()). Maximum 4096 bytes. Will be ignored if included on the initial frame |
 
 ## Farcaster Compatibility
 
@@ -58,6 +59,7 @@ The following properties are directly compatible with the following Farcaster pr
 | `of:input:text` | `fc:frame:input:text` |
 | `of:image:aspect_ratio` | `fc:frame:image:aspect_ratio` |
 | `of:accepts:farcaster` | `fc:frame` |
+| `of:state` | `fc:frame:state` |
 
 Frames Servers that wish to handle both Farcaster and Open Frames interactions are recommended to include a complete set of both `of:` and `fc:frame` meta tags. If a complete set of Open Frames tags are not present in the page, Client Applications may choose to fall back to equivalent `fc:frame` tags if the `of:accepts:$protocol_identifier` tag is present.
 
@@ -100,6 +102,7 @@ type FramesPost = {
     unixTimestamp: number; // Unix timestamp in milliseconds
     buttonIndex: number; // The button that was clicked
     inputText?: string; // Input text for the Frame's text input, if present. Undefined if no text input field is present
+    state?: string; // State that was passed from the frame, passed back to the frame, serialized to a string. Max 4kB.q
   };
   trustedData: {
     messageBytes: string;
