@@ -76,7 +76,36 @@ The target property must be a valid [CAIP-10](https://github.com/ChainAgnostic/C
 
 The `tx` action allows a frame to send a transaction request to the user's connected wallet. Unlike other action types, tx actions have multiple steps.
 
-First, the client makes a POST request to the `target` URL to fetch data about the transaction. The frame server receives a signed frame action payload in the POST body, including the address of the connected wallet in the `address` field. The frame server must respond with a `200 OK` and a JSON response describing the transaction e.g.:
+First, the client makes a POST request to the `target` URL to fetch data about the transaction. The frame server receives a signed frame action payload in the POST body, including the address of the connected wallet in the `address` field. The frame server must respond with a `200 OK` and a JSON response describing the transaction which satisfies the following type:
+
+
+```ts
+type TransactionTargetResponse {
+  chainId: string;
+  method: "eth_sendTransaction";
+  params: EthSendTransactionParams;
+}
+```
+
+### Ethereum Params
+
+If the method is `eth_sendTransaction` and the chain is an Ethereum EVM chain, the param must be of type `EthSendTransactionParams`:
+
+- `abi`: JSON ABI which **MUST** include encoded function type and **SHOULD** include potential error types. Can be empty.
+- `to`: transaction recipient
+- `value`: value to send with the transaction in wei (optional)
+- `data`: transaction calldata (optional)
+
+```ts
+type EthSendTransactionParams {
+  abi: Abi | [];
+  to: `0x${string}`;
+  value?: string;
+  data?: `0x${string}`;
+}
+```
+
+Example:
 
 ```json
 {
