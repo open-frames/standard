@@ -1,4 +1,4 @@
-# Open Frames Spec [Draft v0.0.2]
+# Open Frames Spec [Draft v0.0.3]
 
 Since the launch of [Farcaster Frames](https://docs.farcaster.xyz/reference/frames/spec), we’ve seen a number of protocols work to add Frames support independently. The original Frames spec was designed for Farcaster and wasn’t set up to handle interactions from different types of applications with unique capabilities. Open Frames is a lightweight extension to the Frames spec to help coordinate the many new applications and protocols adopting Frames.
 
@@ -37,13 +37,90 @@ To turn your web pages into Frames, you need to add basic metadata to your page.
 | Property | Description |
 | --- | --- |
 | `of:button:$idx` | 256 byte string containing the user-visible label for button at index `$idx`. Buttons are 1-indexed. Maximum 4 buttons per Frame. `$idx` values must be rendered in an unbroken sequence.   |
-| `of:button:$idx:action` | Valid options are `post`, `post_redirect`, `mint`, and `link`. Default: `post` |
-| `of:button:$idx:target` | The target of the action. For post , post_redirect, and link action types the target is expected to be a URL starting with `http://` or `https://`. For the mint action type the target must be a [CAIP-10 URL](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) |
+| `of:button:$idx:action` | Valid options are `post`, `post_redirect`, `mint`, `link`, and `tx`. Default: `post` |
+| `of:button:$idx:target` | The target of the action. For `post` , `post_redirect`, and link action types the target is expected to be a URL starting with `http://` or `https://`. For the mint action type the target must be a [CAIP-10 URL](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) |
+| `of:button:$idx:post_url` | 256-byte string that defines a button-specific URL to send the POST payload to. If set, this overrides `of:post_url`
 | `of:post_url` | The URL where the POST payload will be sent. Must be valid and start with `http://` or `https://` . Maximum 256 bytes. |
 | `of:input:text` | If this property is present, a text field should be added to the Frame. The contents of this field will be shown to the user as a label on the text field. Maximum 32 bytes. |
 | `of:image:aspect_ratio` | The aspect ratio of the image specified in the `of:image` field. Allowed values are `1.91:1` and `1:1`. Default: `1.91:1` |
 | `of:image:alt` | Alt text associated with the image for accessibility |
 | `of:state` | A state serialized to a string (for example via JSON.stringify()). Maximum 4096 bytes. Will be ignored if included on the initial frame |
+
+## Button actions
+
+### `post`
+
+The `post` action sends a HTTP POST request to the frame or button `post_url`. This is the default button type.
+
+The frame server receives a signed frame action payload in the POST body, which includes information about which button was clicked, text input, and the cast context. The frame server must respond with a `200 OK` and another frame.
+
+## `post_redirect`
+
+The `post_redirect` action sends an HTTP POST request to the frame or button `post_url`. You can use this action to redirect to a URL based on frame state or user input.
+
+The frame server receives a signed frame action payload in the POST body. The frame server must respond with a `302 Found` and `Location` header that starts with `http://` or `https://`.
+
+## `link`
+
+The `link` action redirects the user to an external URL. You can use this action to redirect to a URL without sending a POST request to the frame server.
+
+Clients do not make a request to the frame server for link actions. Instead, they redirect the user to the `target` URL.
+
+## `mint`
+
+The `mint` action allows the user to mint an NFT. Clients that support relaying or initiating onchain transactions may enhance the mint button by relaying a transaction or interacting with the user's walletl. Clients that do not fall back to linking to an external URL.
+
+The target property must be a valid [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) address, plus an optional token ID appended with a `:`.
+
+## `tx`
+
+The `tx` action allows a frame to send a transaction request to the user's connected wallet. Unlike other action types, tx actions have multiple steps.
+
+First, the client makes a POST request to the `target` URL to fetch data about the transaction. The frame server receives a signed frame action payload in the POST body, including the address of the connected wallet in the `address` field. The frame server must respond with a `200 OK` and a JSON response describing the transaction which satisfies the following type:
+
+
+```ts
+type TransactionTargetResponse {
+  chainId: string;
+  method: "eth_sendTransaction";
+  params: EthSendTransactionParams;
+}
+```
+
+### Ethereum Params
+
+If the method is `eth_sendTransaction` and the chain is an Ethereum EVM chain, the param must be of type `EthSendTransactionParams`:
+
+- `abi`: JSON ABI which **MUST** include encoded function type and **SHOULD** include potential error types. Can be empty.
+- `to`: transaction recipient
+- `value`: value to send with the transaction in wei (optional)
+- `data`: transaction calldata (optional)
+
+```ts
+type EthSendTransactionParams {
+  abi: Abi | [];
+  to: `0x${string}`;
+  value?: string;
+  data?: `0x${string}`;
+}
+```
+
+Example:
+
+```json
+{
+  "chainId": "eip155:1",                                // The chain ID of the transaction
+  "method": "eth_sendTransaction",                      // The method to call on the wallet
+  "params": {
+    "abi": [...],                                       // JSON ABI of the function selector and any errors
+    "to": "0x0000000000000000000000000000000000000001", // The recipient of the transaction
+    "data": "0x00",                                     // Transaction calldata
+    "value": "123456789",                               // Value to send with the transaction
+  },
+};
+```
+
+The client then sends a transaction request to the user's connected wallet. The wallet should prompt the user to sign the transaction and broadcast it to the network. The client should then send a POST request to the `post_url` with a signed frame action payload including the transaction hash in the `transactionId` field to which the frame server should respond with a `200 OK` and another frame.
 
 ## Farcaster Compatibility
 
@@ -56,6 +133,7 @@ The following properties are directly compatible with the following Farcaster pr
 | `of:button:$idx` | `fc:frame:button:index` |
 | `of:button:$idx:action` | `fc:frame:button:$idx:action` |
 | `of:button:$idx:target` | `fc:frame:button:$idx:target` |
+| `of:button:$idx:post_url` | `fc:frame:button:$idx:post_url` |
 | `of:input:text` | `fc:frame:input:text` |
 | `of:image:aspect_ratio` | `fc:frame:image:aspect_ratio` |
 | `of:accepts:farcaster` | `fc:frame` |
