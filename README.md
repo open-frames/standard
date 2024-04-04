@@ -122,6 +122,16 @@ Example:
 
 The client then sends a transaction request to the user's connected wallet. The wallet should prompt the user to sign the transaction and broadcast it to the network. The client should then send a POST request to the `post_url` with a signed frame action payload including the transaction hash in the `transactionId` field to which the frame server should respond with a `200 OK` and another frame.
 
+## Determining the `post_url`
+
+When buttons with `post` and `post_redirect` actions are pressed, the client must send a POST request with the frame action payload to the URL determined by the following rules:
+
+1. If the the button specifies a `target`, the POST request must be sent to the `target` URL.
+2. If the button specifies a `post_url`, the POST request must be sent to the `post_url` URL if `target` is not present
+3. If the button does not specify a `target` or `post_url`, the POST request must be sent to the URL specified in the `of:post_url` property of the Frame metadata.
+4. If the Frame metadata does not specify a `post_url`, the POST request must be sent to the URL of the Frame.
+
+
 ## Farcaster Compatibility
 
 The following properties are directly compatible with the following Farcaster properties as of Feb 21, 2024
