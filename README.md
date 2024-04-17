@@ -88,7 +88,7 @@ The version specified in the `of:accepts:*` tag should be the earliest version o
 Client applications must check the accepts tag for their protocol and ensure that they are capable of sending POST payloads in a format that the Frame Server can understand. If the
 `of:accepts:$client_protocol` field is absent, client applications may choose to assume that the Frame Server only accepts requests using the Farcaster request format using the version specified in the `fc:frame` meta tag. If the client application does not support any of the listed client protocols, the client can choose to skip rendering the Frame entirely or show the Frame with the buttons disabled.
 
-When sending a POST to the Frame Server contained `trustedData`, client applications must include the `clientProtocol` used to generate the payload, which will allow the Frame server to know what data is available and how to verify the `trustedData.messageBytes`.
+When sending a POST to the Frame Server containing `trustedData`, client applications must include the `clientProtocol` used to generate the payload, which will allow the Frame server to know what data is available and how to verify the `trustedData.messageBytes`.
 
 ## Authenticated Identifier
 
@@ -97,11 +97,11 @@ When sending a POST to the Frame Server contained `trustedData`, client applicat
 There are three possible values:
 - `true` : client application must send a `POST` request with a payload containing `trustedData` that corresponds to the `clientProtocol` of the request
 - `false` : client application is not required to contain `trustedData` or `clientProtocol` in `POST` request payload
-- `optional` : client application should send `POST` request with a payload contained `trustedData` is user is logged into a session of a `clientProtocol`
+- `optional` : client application should send `POST` request with a payload contained `trustedData` if user is logged into a session of a `clientProtocol`
 
 When a Frame appears in an application feed, the application should decide to render the frame based on the following criteria:
 - If `of:authenticated` is `false` or `optional`, Frame can be displayed if the application supports the minimum `of:version` of the Frame
-- If `of:authenticated` is `true`, Frame can be displayed if application supports one of the minimum `of:accepts:$client_protocol` versions of the Frame and the application has a user logged into a session of `$client_protocol`
+- If `of:authenticated` is `true`, Frame can be displayed if application supports one of the minimum `of:accepts:$client_protocol` versions and the application has a user logged into a session of `$client_protocol`
 
 ## `POST` Payloads
 
