@@ -13,7 +13,7 @@ We expect the Open Frames specification to evolve, both through improvements to 
 
 ### Client Application
 
-Client applications are responsible for rendering Frames for end-users, handling interactions with buttons on Frames, and creating the POST payload to be sent to the Frames Server. Client applications must support one or more `clientProtocols`.
+Client applications are responsible for rendering Frames for end-users, handling interactions with buttons on Frames, and creating the POST payload to be sent to the Frames Server. Client applications can support one or more `clientProtocols`.
 
 ### Frames Server
 
@@ -28,7 +28,6 @@ To turn your web pages into Frames, you need to add basic metadata to your page.
 | Property | Description |
 | --- | --- |
 | `of:version`  | The version label of the Open Frames spec. Currently the only supported version is `vNext` |
-| `of:accepts:$protocol_identifier` | The minimum client protocol version accepted for the given protocol identifier. For example `vNext` , or `1.5`. At least one `$protocol_identifier` must be specified. |
 | `of:image` | An image which should have an aspect ratio of `1.91:1` or `1:1`.  |
 | `og:image` | An image which should have an aspect ratio of `1.91:1`. Fallback for clients that do not support frames. |
 
@@ -36,6 +35,8 @@ To turn your web pages into Frames, you need to add basic metadata to your page.
 
 | Property | Description |
 | --- | --- |
+| `of:accepts:$protocol_identifier` | The minimum client protocol version accepted for the given protocol identifier. For example `vNext` , or `1.5`. At least one `$protocol_identifier` must be specified if `of:authenticated` is specified as `true` or `optional`. |
+| `of:authenticated` | String value specifying whether frame server is requesting an authenticated response. Allowed values are `true`, `false`, or `optional`. Default: `true` if client protocol is present, `false` otherwise |
 | `of:button:$idx` | 256 byte string containing the user-visible label for button at index `$idx`. Buttons are 1-indexed. Maximum 4 buttons per Frame. `$idx` values must be rendered in an unbroken sequence.   |
 | `of:button:$idx:action` | Valid options are `post`, `post_redirect`, `mint`, and `link`. Default: `post` |
 | `of:button:$idx:target` | The target of the action. For post , post_redirect, and link action types the target is expected to be a URL starting with `http://` or `https://`. For the mint action type the target must be a [CAIP-10 URL](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) |
@@ -87,16 +88,29 @@ The version specified in the `of:accepts:*` tag should be the earliest version o
 Client applications must check the accepts tag for their protocol and ensure that they are capable of sending POST payloads in a format that the Frame Server can understand. If the
 `of:accepts:$client_protocol` field is absent, client applications may choose to assume that the Frame Server only accepts requests using the Farcaster request format using the version specified in the `fc:frame` meta tag. If the client application does not support any of the listed client protocols, the client can choose to skip rendering the Frame entirely or show the Frame with the buttons disabled.
 
-When sending a POST to the Frame Server, client applications must include the `clientProtocol` used to generate the payload, which will allow the Frame server to know what data is available and how to verify the `trustedData.messageBytes`.
+When sending a POST to the Frame Server contained `trustedData`, client applications must include the `clientProtocol` used to generate the payload, which will allow the Frame server to know what data is available and how to verify the `trustedData.messageBytes`.
+
+## Authenticated Identifier
+
+`authenticated` is a tag exposed by Frames that specifies the type of request that a Frame Server is capable of receiving. The value of `authenticated` must not be changed throughout a Frame session to provide consistency for client applications.
+
+There are three possible values:
+- `true` : client application must send a `POST` request with a payload containing `trustedData` that corresponds to the `clientProtocol` of the request
+- `false` : client application is not required to contain `trustedData` or `clientProtocol` in `POST` request payload
+- `optional` : client application should send `POST` request with a payload contained `trustedData` is user is logged into a session of a `clientProtocol`
+
+When a Frame appears in an application feed, the application should decide to render the frame based on the following criteria:
+- If `of:authenticated` is `false` or `optional`, Frame can be displayed if the application supports the minimum `of:version` of the Frame
+- If `of:authenticated` is `true`, Frame can be displayed if application supports one of the minimum `of:accepts:$client_protocol` versions of the Frame and the application has a user logged into a session of `$client_protocol`
 
 ## `POST` Payloads
 
-When a user clicks a button on a Frame, the Frame developer receives a `POST` request with a payload containing both `untrustedData` and `trustedData`. The `trustedData.messageBytes`
+When a user clicks a button on a Frame, the Frame developer receives a `POST` request with a payload containing both `untrustedData` and optional `trustedData`. The `trustedData.messageBytes`
 can be verified by Frame developers so that they can provably know that the contents of that payload were signed by a given user. We propose a minimum schema for all `POST` payloads that can be implemented by any Open Frames `clientProtocol`.
 
 ```tsx
 type FramesPost = {
-  clientProtocol: string; // The client protcol used by the client to generate the payload
+  clientProtocol?: string; // The client protcol used by the client to generate the payload
   untrustedData: {
     url: string; // The URL of the Frame that was clicked. May be different from the URL that the data was posted to.
     unixTimestamp: number; // Unix timestamp in milliseconds
@@ -104,7 +118,7 @@ type FramesPost = {
     inputText?: string; // Input text for the Frame's text input, if present. Undefined if no text input field is present
     state?: string; // State that was passed from the frame, passed back to the frame, serialized to a string. Max 4kB.q
   };
-  trustedData: {
+  trustedData?: {
     messageBytes: string;
   };
 };
