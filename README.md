@@ -32,6 +32,8 @@ To turn your web pages into Frames, you need to add basic metadata to your page.
 | `of:image` | An image which should have an aspect ratio of `1.91:1` or `1:1`.  |
 | `og:image` | An image which should have an aspect ratio of `1.91:1`. Fallback for clients that do not support frames. |
 
+The tag `of:accepts:anonyous` identifies that an Open Frame does not require authentication, and thus can be rendered by any Open Frame compatible client.
+
 ### Optional properties
 
 | Property | Description |
