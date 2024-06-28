@@ -32,7 +32,7 @@ To turn your web pages into Frames, you need to add basic metadata to your page.
 | `of:image` | An image which should have an aspect ratio of `1.91:1` or `1:1`.  |
 | `og:image` | An image which should have an aspect ratio of `1.91:1`. Fallback for clients that do not support frames. |
 
-The tag `of:accepts:anonyous` identifies that an Open Frame does not require authentication, and thus can be rendered by any Open Frame compatible client.
+The tag `of:accepts:anonymous` identifies that an Open Frame does not require authentication, and thus can be rendered by any Open Frames compatible client.
 
 ### Optional properties
 
@@ -47,7 +47,6 @@ The tag `of:accepts:anonyous` identifies that an Open Frame does not require aut
 | `of:image:aspect_ratio` | The aspect ratio of the image specified in the `of:image` field. Allowed values are `1.91:1` and `1:1`. Default: `1.91:1` |
 | `of:image:alt` | Alt text associated with the image for accessibility |
 | `of:state` | A state serialized to a string (for example via JSON.stringify()). Maximum 4096 bytes. Will be ignored if included on the initial frame |
-| `of:context:$protocol_identifier` | Boolean value specifying whether requests sent to frame server must include context (untrustedData) corresponding to the client protocol. Default = `true` | 
 
 ## Button actions
 
@@ -204,7 +203,5 @@ type FramesPost = {
 ```
 
 Different client protocols may choose to include additional fields in the `untrustedData` and `trustedData` portions of the POST payload. Frame Servers may use the `clientProtocol` as a hint for what additional fields are available. All client protocols must include at least the common fields defined above.
-
-The `of:context:$protocol_identifier` tag specifies whether it is required for a POST payload to include additional fields for the specified `clientProtocol`. If the context value is `true` or not provided, then any request to the Frame Server must include the `untrustedData` data fields for the `clientProtocol`. If the context value for a `clientProtocol` is `false` or `of:context:none` is present, then Frame server can accept requests with no additional fields required.
 
 While the payload is similar to the [Farcaster Frames Spec](https://docs.farcaster.xyz/reference/frames/spec), it differs in two important ways. The first is the addition of the `clientProtocol` field. The second is that in place of a `timestamp`, which in Farcaster is the number of seconds since the Farcaster epoch, Open Frames uses the `unixTimestamp` field which is the number of seconds since the unix epoch.
