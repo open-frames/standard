@@ -32,6 +32,8 @@ To turn your web pages into Frames, you need to add basic metadata to your page.
 | `of:image` | An image which should have an aspect ratio of `1.91:1` or `1:1`.  |
 | `og:image` | An image which should have an aspect ratio of `1.91:1`. Fallback for clients that do not support frames. |
 
+The tag `of:accepts:anonymous` identifies that an Open Frame does not require authentication, and thus can be rendered by any Open Frames compatible client.
+
 ### Optional properties
 
 | Property | Description |
@@ -165,6 +167,8 @@ Frames Servers that wish to handle both Farcaster and Open Frames interactions a
 	content="1.1"
 />
 ```
+
+If a frame does not require authentication from any client protocol, the frame can include the tag `of:accepts:anonymous`. If the anonymous tag is included with other client protocol tags, then it is optional for a request to this Frame Server to include authentication for the other client protocol(s).
 
 If a Frame Server declares that it is compatible with a client protocol, Client Applications capable of sending POST responses using that protocol should feel confident that the Frame will work as expected.
 
