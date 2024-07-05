@@ -156,14 +156,8 @@ Frames Servers that wish to handle both Farcaster and Open Frames interactions a
 `clientProtocol` is a string identifier for a client’s capabilities that can be used to negotiate compatibility between the Client Application and the Frame Server. Each Frame Server must advertise which `clientProtocol`s it is capable of receiving button clicks from through the `of:accepts:$protocol_identifier` meta tag included in each HTML response.
 
 ```html
-<meta 
-	property="of:accepts:xmtp"
-	content="2024-02-01"
-/>
-<meta 
-	property="of:accepts:lens"
-	content="1.1"
-/>
+<meta property="of:accepts:xmtp" content="2024-02-01" />
+<meta  property="of:accepts:lens" content="1.1" />
 ```
 
 If a Frame Server declares that it is compatible with a client protocol, Client Applications capable of sending POST responses using that protocol should feel confident that the Frame will work as expected.
@@ -176,6 +170,31 @@ Client applications must check the accepts tag for their protocol and ensure tha
 `of:accepts:$client_protocol` field is absent, client applications may choose to assume that the Frame Server only accepts requests using the Farcaster request format using the version specified in the `fc:frame` meta tag. If the client application does not support any of the listed client protocols, the client can choose to skip rendering the Frame entirely or show the Frame with the buttons disabled.
 
 When sending a POST to the Frame Server, client applications must include the `clientProtocol` used to generate the payload, which will allow the Frame server to know what data is available and how to verify the `trustedData.messageBytes`.
+
+### Convention for unauthenticated frames
+
+If a Frame Server does not require authentication, it should advertise that it accepts the `anonymous` client protocol with version `1.0`. This allows clients to send `POST` requests without needing to sign the payload. All clients should be able to send requests to unauthenticated Frame Servers.
+
+```html
+<meta property="of:accepts:anonymous" content="1.0" />
+```
+
+Clients sending POST requests to an unauthenticated Frame Server should include the `clientProtocol` as `anonymous@1.0` and should not include a `trustedData.messageBytes` field in the POST payload.
+
+Here is an example of a POST payload to an unauthenticated Frame Server:
+
+```
+{
+  "clientProtocol": "anonymous@1.0",
+  "untrustedData": {
+    "url": "https://example.com/frame",
+    "unixTimestamp": 1645382400000,
+    "buttonIndex": 1,
+    "inputText": "...",
+    "state": "..."
+  }
+}
+```
 
 ## `POST` Payloads
 
