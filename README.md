@@ -168,8 +168,6 @@ Frames Servers that wish to handle both Farcaster and Open Frames interactions a
 />
 ```
 
-If a frame does not require authentication from any client protocol, the frame can include the tag `of:accepts:anonymous`. If the anonymous tag is included with other client protocol tags, then it is optional for a request to this Frame Server to include authentication for the other client protocol(s).
-
 If a Frame Server declares that it is compatible with a client protocol, Client Applications capable of sending POST responses using that protocol should feel confident that the Frame will work as expected.
 
 Client protocol strings must conform to the following format: `$PROTOCOL_IDENTIFIER@$PROTOCOL_VERSION`. Protocol versions are a string, and it is up to each protocol to decide how it should specify versions. For example, a Farcaster client today might define it’s `clientProtocol` as `farcaster@vNext`. 
@@ -205,6 +203,8 @@ Here is an example of a POST payload to an unauthenticated Frame Server:
   }
 }
 ```
+
+If the anonymous tag is included with other client protocol tags, then it is optional for a request to this Frame Server to include authentication for the other client protocol(s).
 
 ## `POST` Payloads
 
