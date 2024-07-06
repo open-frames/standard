@@ -181,6 +181,31 @@ Client applications must check the accepts tag for their protocol and ensure tha
 
 When sending a POST to the Frame Server, client applications must include the `clientProtocol` used to generate the payload, which will allow the Frame server to know what data is available and how to verify the `trustedData.messageBytes`.
 
+### Convention for unauthenticated frames
+
+If a Frame Server does not require authentication, it should advertise that it accepts the `anonymous` client protocol with version `1.0`. This allows clients to send `POST` requests without needing to sign the payload. All clients should be able to send requests to unauthenticated Frame Servers.
+
+```html
+<meta property="of:accepts:anonymous" content="1.0" />
+```
+
+Clients sending POST requests to an unauthenticated Frame Server should include the `clientProtocol` as `anonymous@1.0` and should not include a `trustedData.messageBytes` field in the POST payload.
+
+Here is an example of a POST payload to an unauthenticated Frame Server:
+
+```
+{
+  "clientProtocol": "anonymous@1.0",
+  "untrustedData": {
+    "url": "https://example.com/frame",
+    "unixTimestamp": 1645382400000,
+    "buttonIndex": 1,
+    "inputText": "...",
+    "state": "..."
+  }
+}
+```
+
 ## `POST` Payloads
 
 When a user clicks a button on a Frame, the Frame developer receives a `POST` request with a payload containing both `untrustedData` and `trustedData`. The `trustedData.messageBytes`
