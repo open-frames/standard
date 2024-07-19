@@ -78,7 +78,7 @@ The target property must be a valid [CAIP-10](https://github.com/ChainAgnostic/C
 
 The `tx` action allows a frame to request the user take an action in their connected wallet. Unlike other action types, `tx` actions have multiple steps.
 
-First, the client makes a POST request to the `target` URL to fetch data about the wallet action. The frame server receives a signed frame action payload in the POST body, including the address of the connected wallet in the `address` field. The frame server must respond with a `200 OK` and a JSON response describing the wallet action which satisfies one of the [wallet action response types].
+First, the client makes a POST request to the `target` URL to fetch data about the wallet action. The frame server receives a signed frame action payload in the POST body, including the address of the connected wallet in the `address` field. The frame server must respond with a `200 OK` and a JSON response describing the wallet action which satisfies one of the [wallet action response types](#wallet-action-response-types).
 
 The client uses the response data to request an action in the user's wallet. If the user completes the action, the client makes a POST request to the `post_url` with a signed frame action payload that includes the transaction or signature hash in the `actionResponse` field and the address used in the `address` field. The frame server must respond with a `200 OK` and another frame. The frame server may monitor the transaction hash to determine if the transaction succeeds, reverts, or times out.
 
