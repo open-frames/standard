@@ -88,13 +88,13 @@ A wallet action response must be one of the following:
 
 **EthSendTransactionAction**
 
-    - `chainId`: A CAIP-2 chain ID to identify the transaction network (e.g., Ethereum mainnet).
-    - `method`: Must be `"eth_sendTransaction"`.
-    - `params`:
-        - `abi`: JSON ABI which MUST include encoded function type and SHOULD include potential error types. Can be empty.
-        - `to`: Transaction recipient.
-        - `value`: Value to send with the transaction in wei (optional).
-        - `data`: Transaction calldata (optional).
+- `chainId`: A CAIP-2 chain ID to identify the transaction network (e.g., Ethereum mainnet).
+- `method`: Must be `"eth_sendTransaction"`.
+- `params`:
+    - `abi`: JSON ABI which MUST include encoded function type and SHOULD include potential error types. Can be empty.
+    - `to`: Transaction recipient.
+    - `value`: Value to send with the transaction in wei (optional).
+    - `data`: Transaction calldata (optional).
 
 ```tsx
 type EthSendTransactionAction = {
@@ -128,13 +128,13 @@ Example:
 
 See [EIP-712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md).
 
-    - `chainId`: A CAIP-2 chain ID to identify the transaction network (e.g., Ethereum mainnet).
-    - `method`: Must be `"eth_signTypedData_v4"`.
-    - `params`:
-        - `domain`: The typed domain.
-        - `types`: The type definitions for the typed data.
-        - `primaryType`: The primary type to extract from types and use in value.
-        - `message`: Typed message.
+- `chainId`: A CAIP-2 chain ID to identify the transaction network (e.g., Ethereum mainnet).
+- `method`: Must be `"eth_signTypedData_v4"`.
+- `params`:
+    - `domain`: The typed domain.
+    - `types`: The type definitions for the typed data.
+    - `primaryType`: The primary type to extract from types and use in value.
+    - `message`: Typed message.
 
 ```tsx
 type EthSignTypedDataV4Action = {
