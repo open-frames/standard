@@ -86,7 +86,8 @@ The client uses the response data to request an action in the user's wallet. If 
 
 A wallet action response must be one of the following:
 
-### EthSendTransactionAction
+**EthSendTransactionAction**
+
     - `chainId`: A CAIP-2 chain ID to identify the transaction network (e.g., Ethereum mainnet).
     - `method`: Must be `"eth_sendTransaction"`.
     - `params`:
@@ -95,7 +96,7 @@ A wallet action response must be one of the following:
         - `value`: Value to send with the transaction in wei (optional).
         - `data`: Transaction calldata (optional).
 
-```
+```tsx
 type EthSendTransactionAction = {
   chainId: string;
   method: 'eth_sendTransaction';
@@ -110,7 +111,7 @@ type EthSendTransactionAction = {
 
 Example:
 
-```
+```json
 {
   "chainId": "eip155:1",
   "method": "eth_sendTransaction",
@@ -123,7 +124,7 @@ Example:
 }
 ```
 
-### EthSignTypedDataV4Action
+**EthSignTypedDataV4Action**
 
 See [EIP-712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md).
 
@@ -135,7 +136,7 @@ See [EIP-712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md).
         - `primaryType`: The primary type to extract from types and use in value.
         - `message`: Typed message.
 
-```
+```tsx
 type EthSignTypedDataV4Action = {
   chainId: string;
   method: 'eth_signTypedData_v4';
@@ -155,7 +156,7 @@ type EthSignTypedDataV4Action = {
 
 Example:
 
-```
+```json
 {
   "chainId": "eip155:10",
   "method": "eth_signTypedData_v4",
@@ -252,7 +253,7 @@ Clients sending POST requests to an unauthenticated Frame Server should include 
 
 Here is an example of a POST payload to an unauthenticated Frame Server:
 
-```
+```json
 {
   "clientProtocol": "anonymous@1.0",
   "untrustedData": {
@@ -261,7 +262,7 @@ Here is an example of a POST payload to an unauthenticated Frame Server:
     "buttonIndex": 1,
     "inputText": "...",
     "state": "...",
-    "address: "0x...",
+    "address": "0x...",
     "transaction_id": "0x..."
   }
 }
@@ -283,8 +284,8 @@ type FramesPost = {
     buttonIndex: number; // The button that was clicked
     inputText?: string; // Input text for the Frame's text input, if present. Undefined if no text input field is present
     state?: string; // State that was passed from the frame, passed back to the frame, serialized to a string. Max 4kB.q
-    transaction_id?: string // Transaction hash or signed typed data from wallet action
     address?: string // Address of connected wallet
+    transaction_id?: string // Transaction hash or signed typed data from wallet action
   };
   trustedData: {
     messageBytes: string;
