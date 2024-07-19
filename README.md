@@ -76,53 +76,114 @@ The target property must be a valid [CAIP-10](https://github.com/ChainAgnostic/C
 
 ## `tx`
 
-The `tx` action allows a frame to send a transaction request to the user's connected wallet. Unlike other action types, tx actions have multiple steps.
+The `tx` action allows a frame to request the user take an action in their connected wallet. Unlike other action types, `tx` actions have multiple steps.
 
-First, the client makes a POST request to the `target` URL to fetch data about the transaction. The frame server receives a signed frame action payload in the POST body, including the address of the connected wallet in the `address` field. The frame server must respond with a `200 OK` and a JSON response describing the transaction which satisfies the following type:
+First, the client makes a POST request to the `target` URL to fetch data about the wallet action. The frame server receives a signed frame action payload in the POST body, including the address of the connected wallet in the `address` field. The frame server must respond with a `200 OK` and a JSON response describing the wallet action which satisfies one of the [wallet action response types].
 
+The client uses the response data to request an action in the user's wallet. If the user completes the action, the client makes a POST request to the `post_url` with a signed frame action payload that includes the transaction or signature hash in the `actionResponse` field and the address used in the `address` field. The frame server must respond with a `200 OK` and another frame. The frame server may monitor the transaction hash to determine if the transaction succeeds, reverts, or times out.
 
-```ts
-type TransactionTargetResponse {
-  chainId: string;
-  method: "eth_sendTransaction";
-  params: EthSendTransactionParams;
-}
+### Wallet Action Response Types
+
+A wallet action response must be one of the following:
+
+### EthSendTransactionAction
+    - `chainId`: A CAIP-2 chain ID to identify the transaction network (e.g., Ethereum mainnet).
+    - `method`: Must be `"eth_sendTransaction"`.
+    - `params`:
+        - `abi`: JSON ABI which MUST include encoded function type and SHOULD include potential error types. Can be empty.
+        - `to`: Transaction recipient.
+        - `value`: Value to send with the transaction in wei (optional).
+        - `data`: Transaction calldata (optional).
+
 ```
-
-### Ethereum Params
-
-If the method is `eth_sendTransaction` and the chain is an Ethereum EVM chain, the param must be of type `EthSendTransactionParams`:
-
-- `abi`: JSON ABI which **MUST** include encoded function type and **SHOULD** include potential error types. Can be empty.
-- `to`: transaction recipient
-- `value`: value to send with the transaction in wei (optional)
-- `data`: transaction calldata (optional)
-
-```ts
-type EthSendTransactionParams {
-  abi: Abi | [];
-  to: `0x${string}`;
-  value?: string;
-  data?: `0x${string}`;
-}
+type EthSendTransactionAction = {
+  chainId: string;
+  method: 'eth_sendTransaction';
+  params: {
+    abi: Abi | [];
+    to: string;
+    value?: string;
+    data?: string;
+  };
+};
 ```
 
 Example:
 
-```json
+```
 {
-  "chainId": "eip155:1",                                // The chain ID of the transaction
-  "method": "eth_sendTransaction",                      // The method to call on the wallet
+  "chainId": "eip155:1",
+  "method": "eth_sendTransaction",
   "params": {
-    "abi": [...],                                       // JSON ABI of the function selector and any errors
-    "to": "0x0000000000000000000000000000000000000001", // The recipient of the transaction
-    "data": "0x00",                                     // Transaction calldata
-    "value": "123456789",                               // Value to send with the transaction
-  },
+    "abi": [...],
+    "to": "0x0000000000000000000000000000000000000001",
+    "data": "0x00",
+    "value": "123456789"
+  }
+}
+```
+
+### EthSignTypedDataV4Action
+
+See [EIP-712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md).
+
+    - `chainId`: A CAIP-2 chain ID to identify the transaction network (e.g., Ethereum mainnet).
+    - `method`: Must be `"eth_signTypedData_v4"`.
+    - `params`:
+        - `domain`: The typed domain.
+        - `types`: The type definitions for the typed data.
+        - `primaryType`: The primary type to extract from types and use in value.
+        - `message`: Typed message.
+
+```
+type EthSignTypedDataV4Action = {
+  chainId: string;
+  method: 'eth_signTypedData_v4';
+  params: {
+    domain: {
+      name?: string;
+      version?: string;
+      chainId?: number;
+      verifyingContract?: string;
+    };
+    types: Record<string, unknown>;
+    primaryType: string;
+    message: Record<string, unknown>;
+  };
 };
 ```
 
-The client then sends a transaction request to the user's connected wallet. The wallet should prompt the user to sign the transaction and broadcast it to the network. The client should then send a POST request to the `post_url` with a signed frame action payload including the transaction hash in the `transactionId` field to which the frame server should respond with a `200 OK` and another frame.
+Example:
+
+```
+{
+  "chainId": "eip155:10",
+  "method": "eth_signTypedData_v4",
+  "params": {
+    "domain": {
+      "name": "Example",
+      "version": "1.0",
+      "chainId": 10,
+      "verifyingContract": "0x00000000fcCe7f938e7aE6D3c335bD6a1a7c593D"
+    },
+    "types": {
+      "EIP712Domain": [
+        { "name": "name", "type": "string" },
+        { "name": "version", "type": "string" },
+        { "name": "chainId", "type": "uint256" },
+        { "name": "verifyingContract", "type": "address" }
+      ],
+      "Message": [
+        { "name": "message", "type": "string" }
+      ]
+    },
+    "primaryType": "Message",
+    "message": {
+      "message": "Hello, world!"
+    }
+  }
+}
+```
 
 ## Determining the `post_url`
 
@@ -199,7 +260,9 @@ Here is an example of a POST payload to an unauthenticated Frame Server:
     "unixTimestamp": 1645382400000,
     "buttonIndex": 1,
     "inputText": "...",
-    "state": "..."
+    "state": "...",
+    "address: "0x...",
+    "transaction_id": "0x..."
   }
 }
 ```
@@ -220,6 +283,8 @@ type FramesPost = {
     buttonIndex: number; // The button that was clicked
     inputText?: string; // Input text for the Frame's text input, if present. Undefined if no text input field is present
     state?: string; // State that was passed from the frame, passed back to the frame, serialized to a string. Max 4kB.q
+    transaction_id?: string // Transaction hash or signed typed data from wallet action
+    address?: string // Address of connected wallet
   };
   trustedData: {
     messageBytes: string;
