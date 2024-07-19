@@ -263,7 +263,7 @@ Here is an example of a POST payload to an unauthenticated Frame Server:
     "inputText": "...",
     "state": "...",
     "address": "0x...",
-    "transaction_id": "0x..."
+    "actionResponse": "0x..."
   }
 }
 ```
@@ -285,7 +285,7 @@ type FramesPost = {
     inputText?: string; // Input text for the Frame's text input, if present. Undefined if no text input field is present
     state?: string; // State that was passed from the frame, passed back to the frame, serialized to a string. Max 4kB.q
     address?: string // Address of connected wallet
-    transaction_id?: string // Transaction hash or signed typed data from wallet action
+    actionResponse?: string // Transaction hash or signed typed data from wallet action
   };
   trustedData: {
     messageBytes: string;
