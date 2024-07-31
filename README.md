@@ -80,7 +80,7 @@ The `tx` action allows a frame to request the user take an action in their conne
 
 First, the client makes a POST request to the `target` URL to fetch data about the wallet action. The frame server receives a signed frame action payload in the POST body, including the address of the connected wallet in the `address` field. The frame server must respond with a `200 OK` and a JSON response describing the wallet action which satisfies one of the [wallet action response types](#wallet-action-response-types).
 
-The client uses the response data to request an action in the user's wallet. If the user completes the action, the client makes a POST request to the `post_url` with a signed frame action payload that includes the transaction or signature hash in the `actionResponse` field and the address used in the `address` field. The frame server must respond with a `200 OK` and another frame. The frame server may monitor the transaction hash to determine if the transaction succeeds, reverts, or times out.
+The client uses the response data to request an action in the user's wallet. If the user completes the action, the client makes a POST request to the `post_url` with a signed frame action payload that includes the transaction or signature hash in the `transactionId` field and the address used in the `address` field. The frame server must respond with a `200 OK` and another frame. The frame server may monitor the transaction hash to determine if the transaction succeeds, reverts, or times out.
 
 ### Wallet Action Response Types
 
@@ -263,7 +263,7 @@ Here is an example of a POST payload to an unauthenticated Frame Server:
     "inputText": "...",
     "state": "...",
     "address": "0x...",
-    "actionResponse": "0x..."
+    "transactionId": "0x..."
   }
 }
 ```
@@ -285,7 +285,7 @@ type FramesPost = {
     inputText?: string; // Input text for the Frame's text input, if present. Undefined if no text input field is present
     state?: string; // State that was passed from the frame, passed back to the frame, serialized to a string. Max 4kB.q
     address?: string // Address of connected wallet
-    actionResponse?: string // Transaction hash or signed typed data from wallet action
+    transactionId?: string // Transaction hash or signed typed data from wallet action
   };
   trustedData: {
     messageBytes: string;
