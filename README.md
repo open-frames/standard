@@ -202,6 +202,7 @@ The following properties are directly compatible with the following Farcaster pr
 
 | Open Frames Property | Farcaster Property |
 | --- | --- |
+| `of:post_url` | `fc:frame:post_url` |
 | `of:image` | `fc:frame:image` |
 | `og:image` | `og:image` |
 | `of:button:$idx` | `fc:frame:button:index` |
